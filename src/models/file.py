@@ -52,7 +52,7 @@ class File:
 
     def _read_file(self) -> list:
         data = []
-    
+
         if self.direction == 'reverse':
             data = self._reverse_readline(self.path)
 
@@ -80,14 +80,18 @@ class File:
     def _match_row(self, row: str) -> dict:
         result = {}
         matched_patterns = []
-        and_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'AND']
-        or_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'OR']
-        not_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'NOT']
-        keyword_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'KEYWORD']
+        and_conditions = [
+            pattern for pattern in self.patterns if pattern.operator.upper() == 'AND']
+        or_conditions = [
+            pattern for pattern in self.patterns if pattern.operator.upper() == 'OR']
+        not_conditions = [
+            pattern for pattern in self.patterns if pattern.operator.upper() == 'NOT']
+        keyword_conditions = [
+            pattern for pattern in self.patterns if pattern.operator.upper() == 'KEYWORD']
         and_matches = self._matches(and_conditions, row)
         or_matches = self._matches(or_conditions, row)
         not_matches = self._matches(not_conditions, row)
-        keyword_matches = self._matches(keyword_conditions, row)
+        keyword_matches = self._matches(keyword_conditions, row) if and_conditions or or_conditions else {}
         and_match = all(and_matches['matches'])
         or_match = any(or_matches['matches'])
         not_match = all(not_matches['matches'])
@@ -98,7 +102,8 @@ class File:
 
         if (not and_conditions or and_match) and (not or_conditions or or_match) and (not not_conditions or not not_match):
             result['patterns'] = matched_patterns
-            result['combined_weight'] = sum([pattern['weight'] for pattern in matched_patterns])
+            result['combined_weight'] = sum(
+                [pattern['weight'] for pattern in matched_patterns])
             result['row'] = row
 
         return result
@@ -129,7 +134,8 @@ class File:
                 result['matched_rows'] += 1
 
         if self.order_by == 'weight':
-            result['rows'] = sorted(result['rows'], key=lambda d: d['combined_weight'], reverse=True)
+            result['rows'] = sorted(
+                result['rows'], key=lambda d: d['combined_weight'], reverse=True)
 
         return result
 
@@ -153,7 +159,8 @@ class File:
         output_path = output.get('path', '')
 
         # Create Pattern objects from each pattern
-        patterns = [Pattern(**pattern_data) for pattern_data in data.get('patterns', [])]
+        patterns = [Pattern(**pattern_data)
+                    for pattern_data in data.get('patterns', [])]
 
         # Instantiate and return a File object with the Pattern objects
         return cls(

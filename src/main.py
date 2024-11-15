@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from jinja2 import Environment, FileSystemLoader
 
 from models import File
 from schemas import config_schema
@@ -6,6 +7,7 @@ from schemas import config_schema
 import yaml
 import json
 import os
+
 
 def load_configuration(path: str) -> dict:
     configuration = {}
@@ -26,22 +28,37 @@ def load_configuration(path: str) -> dict:
             return configuration
         return {}
 
+
 def export_json(path: str, data: dict) -> None:
     if os.path.exists(path):
         raise OSError(f"File {path} already exists")
-    
+
     with open(path, 'w', encoding='utf-8') as file:
         file.write(json.dumps(data))
 
+
+def export_html(title: str, path: str, data: dict) -> None:
+    if os.path.exists(path):
+        raise OSError(f"File {path} already exists")
+
+    environment = Environment(loader=FileSystemLoader('templates/'))
+    template = environment.get_template('template.html')
+    content = template.render(title=title, data=data)
+
+    with open(path, mode='w', encoding='utf-8') as file:
+        file.write(content)
+
+
 def export_output(configuration: dict, data: dict):
-    match configuration['output']:
+    match configuration['output']['type']:
         case 'json':
-            export_json()
+            export_json(configuration['output']['path'], data)
         case 'html':
-            pass
-        case _:
-            pass
-        
+            export_html(configuration['file'],
+                        configuration['output']['path'], data)
+        case 'console' | _:
+            print(json.dumps(data, indent=2))
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -57,5 +74,4 @@ if __name__ == "__main__":
     for file in configuration['files']:
         data = File.from_dict(file)
         processed = data.process()
-        print(json.dumps(processed, indent=2))
-        # export_output(file, processed)
+        export_output(file, processed)

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filur output</title>
+    <style>
+        :root {
+            --base03: #002b36;
+            --base02: #073642;
+            --base01: #586e75;
+            --base00: #657b83;
+            --base0: #839496;
+            --base1: #93a1a1;
+            --base2: #eee8d5;
+            --base3: #fdf6e3;
+            --yellow: #b58900;
+            --orange: #cb4b16;
+            --red: #dc322f;
+            --magenta: #d33682;
+            --violet: #6c71c4;
+            --blue: #268bd2;
+            --cyan: #2aa198;
+            --green: #859900;
+        }
+
+        /* Global Styles */
+        html,
+        body {
+            margin: 0.3em;
+            padding: 0;
+            font-family: "Source Code Pro", Consolas, "Courier New", monospace;
+            color: var(--base0);
+            background-color: var(--base03);
+            line-height: 1.6;
+        }
+
+        /* Text Styling */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: var(--base1);
+            margin: 1rem 0;
+        }
+
+        p {
+            color: var(--base0);
+            margin: 0.5rem 0;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: var(--base02);
+            border: 1px solid var(--base01);
+        }
+
+        th,
+        td {
+            border: 1px solid var(--base01);
+            padding: 8px;
+            text-align: left;
+            color: var(--base0);
+        }
+
+        th {
+            background-color: var(--base01);
+            color: var(--base1);
+        }
+
+        tr:nth-child(even) {
+            background-color: var(--base02);
+        }
+
+        tr:nth-child(odd) {
+            background-color: var(--base03);
+        }
+
+        tr:hover {
+            background-color: var(--base02);
+            color: var(--base1);
+            cursor: pointer;
+        }
+
+        tr.clickable {
+            cursor: pointer;
+        }
+
+        .expandable-row {
+            display: none;
+        }
+
+        .string {
+            background: var(--yellow);
+            color: #fff;
+        }
+
+        .regex {
+            background: var(--red);
+            color: #fff;
+        }
+
+        .keyword {
+            background: var(--violet);
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>filur - {{ title }}</h2>
+    <table class="table_component" id="expandable-table">
+        <thead>
+            <tr>
+                <th>Weight</th>
+                <th>Patterns</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically inserted here -->
+        </tbody>
+    </table>
+    <script>
+        const data = {{ data.rows | safe }}
+        const tableBody = document.querySelector("#expandable-table tbody");
+
+        // Function to add rows to the table
+        data.forEach((item, index) => {
+            const mainRow = document.createElement("tr");
+            mainRow.classList.add("clickable");
+            mainRow.innerHTML = `<td>${item.combined_weight}</td><td>${item.patterns.length}</td><td>${highlightRow(item)}</td>`;
+            mainRow.addEventListener("click", () => toggleDetailsRow(index));
+            tableBody.appendChild(mainRow);
+
+            // Expandable row
+            const detailsRow = document.createElement("tr");
+            detailsRow.classList.add("expandable-row");
+            detailsRow.setAttribute("data-index", index);
+            let detailRows = "";
+            item.patterns.forEach((i, idx) => {
+                detailRows += `
+                    <tr>
+                        <td>${i.pattern}</td>
+                        <td>${i.type}</td>
+                        <td>${i.weight}</td>
+                        <td>${i.operator}</td>
+                    </tr>
+                `;
+                detailsRow.innerHTML = `<td colspan="3">
+                                    <table class="table_component">
+                                        <thead>
+                                            <tr>
+                                                <th>Pattern</th>
+                                                <th>Pattern type</th>
+                                                <th>Pattern weight</th>
+                                                <th>Pattern operator</th>
+                                            </tr>    
+                                        </thead>
+                                        ${detailRows}
+                                    </table>
+                                  </td>`;
+                tableBody.appendChild(detailsRow);
+            });
+        });
+
+        // Function to toggle the visibility of the expandable row
+        function toggleDetailsRow(index) {
+            const detailsRow = document.querySelector(`.expandable-row[data-index="${index}"]`);
+            if (detailsRow.style.display === "table-row") {
+                detailsRow.style.display = "none";
+            } else {
+                detailsRow.style.display = "table-row";
+            }
+        }
+
+        function highlightRow(data) {
+            let { patterns, row } = data;
+
+            // Sort patterns to handle string patterns before regex patterns for proper nesting
+            patterns = patterns.sort((a, b) => (a.type === "string" && b.type === "regex" ? -1 : 0));
+
+            // Iterate through patterns
+            patterns.forEach(patternObj => {
+                const { pattern, type, operator } = patternObj;
+
+                if (type === "string") {
+                    // Escape the string for regex usage
+                    const escapedString = pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const regex = new RegExp(escapedString, "g");
+                    row = row.replace(regex, match => `<span class="${operator.toUpperCase() === "KEYWORD" ? "keyword" : type}">${match}</span>`);
+                } else if (type === "regex") {
+                    const regex = new RegExp(pattern, "g");
+                    row = row.replace(regex, match => `<span class="${operator.toUpperCase() === "KEYWORD" ? "keyword" : type}">${match}</span>`);
+                }
+            });
+
+            return row;
+        }
+    </script>
+</body>
+
+</html>
