@@ -19,7 +19,8 @@ config_schema = Schema(
                 ],
                 'output': {
                     Optional('path'): Use(str, error="No output path specified"),
-                    'type': Or('json', 'html', 'console', error="No output type specified")
+                    'type': Or('json', 'html', 'console', error="No output type specified"),
+                    Optional('overwrite'): Use(str)
                 },
             }
         ]

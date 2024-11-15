@@ -29,16 +29,25 @@ def load_configuration(path: str) -> dict:
         return {}
 
 
-def export_json(path: str, data: dict) -> None:
-    if os.path.exists(path):
+def export_json(configuration: dict, data: dict) -> None:
+    output = configuration['output']
+    path = output['path']
+    overwrite = output['overwrite'] if 'overwrite' in output else False
+
+    if os.path.exists(path) and not overwrite:
         raise OSError(f"File {path} already exists")
 
     with open(path, 'w', encoding='utf-8') as file:
         file.write(json.dumps(data))
 
 
-def export_html(title: str, path: str, data: dict) -> None:
-    if os.path.exists(path):
+def export_html(configuration: dict, data: dict) -> None:
+    output = configuration['output']
+    title = configuration['file']
+    path = output['path']
+    overwrite = output['overwrite'] if 'overwrite' in output else False
+
+    if os.path.exists(path) and not overwrite:
         raise OSError(f"File {path} already exists")
 
     environment = Environment(loader=FileSystemLoader('templates/'))
@@ -52,10 +61,9 @@ def export_html(title: str, path: str, data: dict) -> None:
 def export_output(configuration: dict, data: dict):
     match configuration['output']['type']:
         case 'json':
-            export_json(configuration['output']['path'], data)
+            export_json(configuration, data)
         case 'html':
-            export_html(configuration['file'],
-                        configuration['output']['path'], data)
+            export_html(configuration, data)
         case 'console' | _:
             print(json.dumps(data, indent=2))
 
