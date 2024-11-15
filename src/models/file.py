@@ -83,17 +83,19 @@ class File:
         and_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'AND']
         or_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'OR']
         not_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'NOT']
+        keyword_conditions = [pattern for pattern in self.patterns if pattern.operator.upper() == 'KEYWORD']
         and_matches = self._matches(and_conditions, row)
         or_matches = self._matches(or_conditions, row)
         not_matches = self._matches(not_conditions, row)
+        keyword_matches = self._matches(keyword_conditions, row)
         and_match = all(and_matches['matches'])
         or_match = any(or_matches['matches'])
         not_match = all(not_matches['matches'])
 
-        for match in [and_matches, or_matches, not_matches]:
+        for match in [and_matches, or_matches, not_matches, keyword_matches]:
             for pattern in match['patterns']:
                 matched_patterns.append(pattern.to_dict())
-        
+
         if (not and_conditions or and_match) and (not or_conditions or or_match) and (not not_conditions or not not_match):
             result['patterns'] = matched_patterns
             result['combined_weight'] = sum([pattern['weight'] for pattern in matched_patterns])

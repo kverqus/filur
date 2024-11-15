@@ -57,4 +57,5 @@ if __name__ == "__main__":
     for file in configuration['files']:
         data = File.from_dict(file)
         processed = data.process()
-        export_output(file, processed)
+        print(json.dumps(processed, indent=2))
+        # export_output(file, processed)

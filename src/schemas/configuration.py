@@ -14,7 +14,7 @@ config_schema = Schema(
                         "pattern": Use(str),
                         "type": Or("string", "regex"),
                         Optional("weight"): int,
-                        Optional("operator"): Or("AND", "OR", "NOT"),
+                        Optional("operator"): Or("AND", "OR", "NOT", "KEYWORD"),
                     }
                 ],
                 "output": {
