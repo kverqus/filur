@@ -29,6 +29,29 @@ def load_configuration(path: str) -> dict:
         return {}
 
 
+def write_file(path: str, content: str, mode: str = 'w', encoding: str = 'utf-8') -> None:
+    try:
+        with open(path, mode, encoding=encoding) as file:
+            file.write(content)
+
+        print(clickable_link(path, f'Click to open output'))
+
+    except FileNotFoundError:
+        print("Error: The directory or file path does not exist.")
+
+    except PermissionError:
+        print("Error: Insufficient permissions to write to the file.")
+
+    except IsADirectoryError:
+        print("Error: A directory was provided where a file was expected.")
+
+    except OSError as e:
+        print(f"OS error occurred: {e}")
+
+    except ValueError:
+        print("Error: Invalid file mode or other argument.")
+
+
 def export_json(configuration: dict, data: dict) -> None:
     output = configuration['output']
     path = output['path']
@@ -37,8 +60,7 @@ def export_json(configuration: dict, data: dict) -> None:
     if os.path.exists(path) and not overwrite:
         raise OSError(f"File {path} already exists")
 
-    with open(path, 'w', encoding='utf-8') as file:
-        file.write(json.dumps(data))
+    write_file(path, json.dumps(data))
 
 
 def export_html(configuration: dict, data: dict) -> None:
@@ -54,8 +76,13 @@ def export_html(configuration: dict, data: dict) -> None:
     template = environment.get_template('template.html')
     content = template.render(title=title, data=data)
 
-    with open(path, mode='w', encoding='utf-8') as file:
-        file.write(content)
+    write_file(path, content)
+
+
+def clickable_link(uri: str, label: str = '') -> str:
+    label = uri if not label else label
+    # OSC 8 ; params ; URI ST <name> OSC 8 ;; ST
+    return f"\033]8;'';{uri}\033\\{label}\033]8;;\033\\"
 
 
 def export_output(configuration: dict, data: dict):
