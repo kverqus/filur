@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from jinja2 import Environment, FileSystemLoader
 
-from models import File
-from schemas import config_schema
+from filur.models import File
+from filur.schemas import config_schema
 
 import yaml
 import json
@@ -95,7 +95,7 @@ def export_output(configuration: dict, data: dict):
             print(json.dumps(data, indent=2))
 
 
-if __name__ == "__main__":
+def main():
     parser = ArgumentParser()
     parser.add_argument(
         '-p',
@@ -110,3 +110,7 @@ if __name__ == "__main__":
         data = File.from_dict(file)
         processed = data.process()
         export_output(file, processed)
+
+
+if __name__ == "__main__":
+    main()

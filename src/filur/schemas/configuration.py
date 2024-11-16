@@ -6,7 +6,7 @@ config_schema = Schema(
         'files': [
             {
                 'file': Use(str, error="No file supplied"),
-                'direction': Or('forward', 'reverse'),
+                Optional('direction'): Or('forward', 'reverse'),
                 Optional('order_by'): Or('none', 'weight'),
                 Optional('rows'): int,
                 'patterns': [

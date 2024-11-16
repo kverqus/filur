@@ -151,7 +151,7 @@ class File:
     @classmethod
     def from_dict(cls, data: dict):
         # Set defaults in case nothing is specified in the playbook
-        direction = data.get('direction', 'reverse')
+        direction = data.get('direction', 'forward')
         order_by = data.get('order_by', 'none')
         rows = data.get('rows', -1)
         output = data.get('output', {})
