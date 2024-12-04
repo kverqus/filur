@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from jinja2 import Environment, FileSystemLoader
+from importlib import resources
 
 from filur.models import File
 from filur.schemas import config_schema
@@ -72,7 +73,9 @@ def export_html(configuration: dict, data: dict) -> None:
     if os.path.exists(path) and not overwrite:
         raise OSError(f"File {path} already exists")
 
-    environment = Environment(loader=FileSystemLoader('templates/'))
+    with resources.path('filur.templates', '') as templates_path:
+        environment = Environment(loader=FileSystemLoader(templates_path))
+
     template = environment.get_template('template.html')
     content = template.render(title=title, data=data)
 
